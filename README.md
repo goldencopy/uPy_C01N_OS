@@ -1,5 +1,8 @@
 # uPy_C01N_OS
-Updated: 24 June 2019
+Updated: 31 July 2024
+
+- Added BLE functionality to the C01N, and a camera remote control app for Fujifilm cameras (tested with GFX100s).
+- Updated MicroPython core for BLE support
 
 To get a basic flashing station make sure you have these dependencies
 
@@ -13,7 +16,7 @@ To get a basic flashing station make sure you have these dependencies
 Then get our stuff
 
 ```
-git clone https://github.com/c01nrepo/uPy_C01N_OS.git
+git clone https://github.com/goldencopy/uPy_C01N_OS.git
 cd uPy_C01N_OS
 
 chmod +x flash.sh
