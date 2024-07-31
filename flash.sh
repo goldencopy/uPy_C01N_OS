@@ -9,7 +9,7 @@ fi
 
 # FLASH NEW FIRMWARE
 $ESPTOOL --chip esp32 --port $1 erase_flash
-$ESPTOOL --chip esp32 --port $1 --baud 2000000 write_flash -z 0x1000 esp32spiram-20190125-v1.10.bin
+$ESPTOOL --chip esp32 --port $1 --baud 2000000 write_flash -z 0x1000 ESP32_GENERIC-SPIRAM-20240222-v1.22.2.bin
 
 sleep 2
 

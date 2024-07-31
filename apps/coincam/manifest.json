@@ -1,0 +1,10 @@
+{
+	"name":"Fuji Remote",
+	"desc":"Bluetooth remote control app for Fuji cameras",
+	"tags":["utility"],
+	"author":"jonchiang",
+	"version":"280524",
+	"pkg":"coincam",
+	"start":"coincam",
+	"pubEpoch": 1552953600
+}

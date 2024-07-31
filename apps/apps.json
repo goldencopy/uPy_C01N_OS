@@ -2,5 +2,6 @@
 {"name":"Name Badge","dir":"namebadge","start":"name"},
 {"name":"SG Weather","dir":"sgweather","start":"weather"},
 {"name":"Coin Sketch","dir":"coinsketch","start":"coinsketch"},
-{"name":"Ping Pong","dir":"pingpong","start":"pingpong"}
+{"name":"Ping Pong","dir":"pingpong","start":"pingpong"},
+{"name":"Fuji Remote","dir":"coincam","start":"coincam"}
 ]}
