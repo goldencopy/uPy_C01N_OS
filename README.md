@@ -3,6 +3,7 @@ Updated: 31 July 2024
 
 - Added BLE functionality to the C01N, and a camera remote control app for Fujifilm cameras (tested with GFX100s).
 - Updated MicroPython core for BLE support
+- Also credits to @gkoh's furble project for the Fuji pairing UUIDs (https://github.com/gkoh/furble/)
 
 To get a basic flashing station make sure you have these dependencies
 
