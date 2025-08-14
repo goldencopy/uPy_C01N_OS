@@ -1,4 +1,9 @@
 # uPy_C01N_OS
+Updated 14 Aug 2025
+
+- General bug fixes for BLE Fujifilm remote control app (tested to work with GFX100s and GFX100sii, should work with most other Fujifilm cameras)
+- App now stores previous pairing information for future reconnection without going through a new pairing sequence
+
 Updated: 31 July 2024
 
 - Added BLE functionality to the C01N, and a camera remote control app for Fujifilm cameras (tested with GFX100s).
