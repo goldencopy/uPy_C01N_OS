@@ -45,6 +45,8 @@ FUJIFILM_SHUTTER_PRESS = [0x02, 0x00]
 FUJIFILM_SHUTTER_RELEASE = [0x00, 0x00]
 FUJIFILM_SHUTTER_FOCUS = [0x03, 0x00]
 
+cam_file_path = 'cam.txt'
+
 coin_name = readConfig()['name']
 print("Badge Name: " + coin_name)
 
@@ -95,7 +97,7 @@ async def find_fuji_camera():
         oled.hctext('No Camera Found',30,1)
         oled.show()
         sleep_ms(2000)
-        return None, None, None        
+        await main_menu()      
 
 async def fuji_connect(device, name):
     try:
@@ -112,37 +114,65 @@ async def fuji_connect(device, name):
         oled.hctext('Connection',10,1)
         oled.hctext('Timeout',25,1)
         oled.show()
-        sleep_ms(2000)
-        return None
+        sleep_ms(1000)
+        await main_menu()
 
 async def connect_existing():
-    cameras = open('cam.txt', 'r')
+    if os.stat(cam_file_path)[6] == 0:  # Index 6 is the file size
+        oled.fill(0)
+        oled.hctext('No existing',10,1)
+        oled.hctext('connections',25,1)
+        oled.show()
+        sleep_ms(1000)
+        await main_menu()
+    
+    cameras = open(cam_file_path, 'r')
     cam_names = []
     cam_macs = []
+    cam_mtkn = []
+    print("Existing pairings:")
     for line in cameras:
-        cam_names.append(line.split(',', 1)[0])
-        cam_macs.append(line.split(',', 1)[1].strip())
+        print(line)
+        split_line = line.split(',')
+        cam_names.append(split_line[0])
+        cam_macs.append(split_line[1])
+        
+        mtkn_str = split_line[2].strip()
+        mtkn_hex_pairs = [mtkn_str[i:i+2] for i in range(0, len(mtkn_str), 2)]
+        mtkn_int_array = [int(pair, 16) for pair in mtkn_hex_pairs]
+        cam_mtkn.append(mtkn_int_array)
     cameras.close()
     camsel = 0
     while camsel != -1:
         camsel = selectVList('Connect To', cam_names, camsel, 1)
         sleep_ms(300)
         device = aioble.Device(0, cam_macs[camsel])
-        return cam_names[camsel], device, 'mtkn'
+        return cam_names[camsel], device, cam_mtkn[camsel]
 
 async def main_menu():
-    main_menu_items = ['New Scan', 'Connect', 'Quit']
+    main_menu_items = ['New Scan', 'Connect', 'Delete', 'Quit']
     sel = 0
     while sel != -1:
         sel = selectVList('Fuji Remote', main_menu_items, sel, 1)
         sleep_ms(300)
         if main_menu_items[sel] == main_menu_items[0]:
             name, device, mToken = await find_fuji_camera()
+            print(f"New scan found: {name}, {device}, {mToken}")
             return name, device, mToken
         if main_menu_items[sel] == main_menu_items[1]:
             name, device, mToken = await connect_existing()
+            print(f"Connect to existing: {name}, {device}, {mToken}")
             return name, device, mToken
         if main_menu_items[sel] == main_menu_items[2]:
+            with open(cam_file_path, 'w') as f:
+                pass
+            oled.fill(0)
+            oled.hctext('Existing',10,1)
+            oled.hctext('connections',25,1)
+            oled.hctext('deleted!',40,1)
+            oled.show()
+            await asyncio.sleep_ms(1000)
+        if main_menu_items[sel] == main_menu_items[3]:
             sel = -1
 
 async def fuji_pair(name, connection, device, mToken, newpair):
@@ -152,10 +182,9 @@ async def fuji_pair(name, connection, device, mToken, newpair):
         pair_characteristic = await pair_service.characteristic(_FUJIFILM_CHR_PAIR_UUID)
         iden_characteristic = await pair_service.characteristic(_FUJIFILM_CHR_IDEN_UUID)
         
-        if newpair:
-            print("Writing mToken to _FUJIFILM_CHR_PAIR_UUID characteristic")
-            await pair_characteristic.write(bytes(mToken), True, timeout_ms=TIMEOUT_MS)
-        
+        print("Writing mToken to _FUJIFILM_CHR_PAIR_UUID characteristic")
+        await pair_characteristic.write(bytes(mToken), True, timeout_ms=TIMEOUT_MS)
+    
         print("Writing ESP32 badge name to _FUJIFILM_CHR_IDEN_UUID characteristic")
         await iden_characteristic.write(coin_name, True, timeout_ms=TIMEOUT_MS)
         
@@ -194,11 +223,8 @@ async def fuji_pair(name, connection, device, mToken, newpair):
         
         if newpair:
             print("Configuration complete, saving camera details")
-            cameras = open('cam.txt', 'a')
-            cameras.write(name)
-            cameras.write(",")
-            cameras.write(device.addr_hex())
-            cameras.write("\n")
+            cameras = open(cam_file_path, 'a')
+            cameras.write(("{},{},{}\n".format(name, device.addr_hex(), "".join("%02x" % e for e in mToken))))
             cameras.close()
     
         return shutter_characteristic
@@ -208,8 +234,8 @@ async def fuji_pair(name, connection, device, mToken, newpair):
         oled.fill(0)
         oled.hctext('Pairing Timeout',30,1)
         oled.show()
-        sleep_ms(2000)
-        return None
+        sleep_ms(1000)
+        await main_menu()
 
     await asyncio.sleep_ms(1000)
     print("Configuration done")
@@ -252,7 +278,7 @@ async def app_start():
                 await fuji_shutter_focus(shutter_characteristic)
             if actions[sel] == actions[3]:
                 await connection.disconnect(timeout_ms=TIMEOUT_MS)
-                return
+                await main_menu()
         
     await connection.disconnect(timeout_ms=TIMEOUT_MS)
 
